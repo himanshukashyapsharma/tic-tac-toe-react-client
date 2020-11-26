@@ -17,7 +17,9 @@ function game({location,history}) {
     const [UserWon, setUserWon] = new useState()
     const [IsTurn,setIsTurn] = new useState(true)
     const [ErrorMessage,setErrorMessage] = new useState(' ')
+    const [Count,setCount] = new useState(0)
     const ENDPOINT = "http://localhost:5000/"
+    // const ENDPOINT = "https://react-tictactoe-socket.herokuapp.com/"
 
     new useEffect(()=>{
         const {name,room} = queryString.parse(location.search)
@@ -44,20 +46,21 @@ function game({location,history}) {
     new useEffect(()=>{
         
         // recieves position of second players move from server
-        socket.once("2playturn",({i,j,newBooleanArray})=>{   
+        socket.once("2playturn",({i,j,newBooleanArray,newCount})=>{   
             // set board value according to the values and position recieved by other user and prevent them form being clickable too.
             let newBoard = Board
             let newArray = Board[i]
             newArray[j] = 'X'
             newBoard[i] = newArray
+            setCount(newCount)
             setBoard([...newBoard])
             setIsPlayed([...newBooleanArray])
             setIsTurn(true)
         })
 
         socket.once("message",({errorMessage}) => {
-            history.push('/') 
-            alert(`${errorMessage}`)
+            history.push('/')
+            // alert(`${errorMessage}`)
         })
 
         socket.once('userData',({users}) => {
@@ -103,9 +106,23 @@ function game({location,history}) {
             setUserWon(null)
             setIsTurn(true)
             setRoomData(null)
+            setCount(0)
             alert(`${winnerName} has won the game.`)
             history.push('/')
+        } else {
+            if(Count === 9 ){
+                setBoard([[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']])
+                setIsPlayed([[false,false,false],[false,false,false],[false,false,false]])
+                setUserWon(null)
+                setIsTurn(true)
+                setRoomData(null)
+                setCount(0)
+                alert(`Draw Match`)
+                history.push('/')
+            }
         }
+
+        //draw logic
 
         //draw logic
         // let drawFlag // 1 = draw , 0 = not draw
@@ -138,18 +155,21 @@ function game({location,history}) {
         let booleanRow = [...IsPlayed[i]]
         let newArrayBoard = Board
         let newBooleanArray = IsPlayed
+        let newCount 
         if(arrayRow[j] === ' ') {
             arrayRow[j] = 'O'
             booleanRow[j] = true
             newBooleanArray[i] = booleanRow
             newArrayBoard[i] = arrayRow
+            newCount = Count + 1
+            setCount(newCount)
             setIsTurn(false)
             setBoard([...newArrayBoard])
             setIsPlayed([...newBooleanArray])
         }
         
         //emits 1players moves to the server
-        socket.emit("1playTurn",{i,j,newBooleanArray})
+        socket.emit("1playTurn",{i,j,newBooleanArray,newCount})
         console.log('Board:',Board)
         console.log('Turn:',IsPlayed)
     }
