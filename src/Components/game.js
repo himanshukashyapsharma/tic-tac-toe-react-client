@@ -9,7 +9,7 @@ let socket
 //i is row and j is column
 
 
-function game({location}) {
+function game({location,history}) {
 
     const [Board,setBoard] = new useState([[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']])
     const [IsPlayed,setIsPlayed] = new useState([[false,false,false],[false,false,false],[false,false,false]])
@@ -45,6 +45,11 @@ function game({location}) {
             setIsTurn(true)
         })
 
+        socket.once("message",({errorMessage}) => {
+            alert(`${errorMessage}`)
+            history.push('/') 
+        })
+
         // reloads whenever messages array is updated
     },[Board,IsTurn,IsPlayed])
 
@@ -69,24 +74,42 @@ function game({location}) {
         if (Board[0][0] !== ' ' && Board[1][1] !== ' ' && Board[2][2] !== ' '){
             if(Board[0][0] === Board[1][1] && Board[1][1] === Board[2][2]){
                 setUserWon(Board[0][0])
-                
             } 
-        }
-        if (Board[0][2] !== ' ' && Board[1][1] !== ' ' && Board[2][0] !== ' '){
+        } else if (Board[0][2] !== ' ' && Board[1][1] !== ' ' && Board[2][0] !== ' '){
             if(Board[0][2] === Board[1][1] && Board[1][1] === Board[2][0]){
-                setUserWon(Board[0][2])
-                
+                setUserWon(Board[0][2])              
             } 
-        }
-
-        // write draw login here <<<<<<<<<<<<<<<<<<<<<<<<<
+        } 
 
         //if user won 
         if(UserWon){
+            let winnerName = UserWon
             setBoard([[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']])
             setIsPlayed([[false,false,false],[false,false,false],[false,false,false]])
-            setUserWon()
+            setUserWon(null)
+            setIsTurn(true)
+            alert(`${winnerName} has won the game.`)
+            history.push('/')
         }
+
+        //draw logic
+        // let drawFlag // 1 = draw , 0 = not draw
+        // for(let i=0;i<3;i++){
+        //     for(let j=0;i<3;j++){
+        //         if(Board[i][j] === ' '){
+        //             drawFlag = 0 
+        //         }
+        //     }
+        // }
+        
+        // if(drawFlag && drawFlag !== 0){
+        //     setBoard([[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']])
+        //     setIsPlayed([[false,false,false],[false,false,false],[false,false,false]])
+        //     setUserWon(null)
+        //     setIsTurn(true)
+        //     alert(`Draw Match`)
+        //     history.push('/')
+        // }
 
     },[Board,UserWon])
 
@@ -98,35 +121,53 @@ function game({location}) {
         // to update array on player 1 side
         let arrayRow = [...Board[i]]
         let booleanRow = [...IsPlayed[i]]
-        booleanRow[j] = true
-        arrayRow[j] = 'O'
         let newArrayBoard = Board
         let newBooleanArray = IsPlayed
-        newBooleanArray[i] = booleanRow
-        newArrayBoard[i] = arrayRow
-        setBoard(newArrayBoard)
-        setIsPlayed(newBooleanArray)
-        setIsTurn(false)
+        if(arrayRow[j] === ' ') {
+            arrayRow[j] = 'O'
+            booleanRow[j] = true
+            newBooleanArray[i] = booleanRow
+            newArrayBoard[i] = arrayRow
+            setIsTurn(false)
+            setBoard([...newArrayBoard])
+            setIsPlayed([...newBooleanArray])
+        }
+        
         //emits 1players moves to the server
         socket.emit("1playTurn",{i,j,newBooleanArray})
+        console.log('Board:',Board)
+        console.log('Turn:',IsPlayed)
+    }
+
+    const isDisabled = (i,j) => {
+        if(IsTurn){
+            if(!IsPlayed[i][j]){
+                return false
+            } else {
+                return true
+            }
+        } else {
+            return true
+        }
     }
 
 
     return (
         <div>
             <div className="board">
-                <button onClick={playTurn} i={0} j={0} disabled={IsPlayed[0][0] && IsTurn} className="board-box" value={Board[0][0]}>{Board[0][0]}</button>
-                <button onClick={playTurn} i={0} j={1} disabled={IsPlayed[0][1] && IsTurn} className="board-box" value={Board[0][1]}>{Board[0][1]}</button>
-                <button onClick={playTurn} i={0} j={2} disabled={IsPlayed[0][2] && IsTurn} className="board-box" value={Board[0][2]}>{Board[0][2]}</button>
-                <button onClick={playTurn} i={1} j={0} disabled={IsPlayed[1][0] && IsTurn} className="board-box" value={Board[1][0]}>{Board[1][0]}</button>
-                <button onClick={playTurn} i={1} j={1} disabled={IsPlayed[1][1] && IsTurn} className="board-box" value={Board[1][1]}>{Board[1][1]}</button>
-                <button onClick={playTurn} i={1} j={2} disabled={IsPlayed[1][2] && IsTurn} className="board-box" value={Board[1][2]}>{Board[1][2]}</button>
-                <button onClick={playTurn} i={2} j={0} disabled={IsPlayed[2][0] && IsTurn} className="board-box" value={Board[2][0]}>{Board[2][0]}</button>
-                <button onClick={playTurn} i={2} j={1} disabled={IsPlayed[2][1] && IsTurn} className="board-box" value={Board[2][1]}>{Board[2][1]}</button>
-                <button onClick={playTurn} i={2} j={2} disabled={IsPlayed[2][2] && IsTurn} className="board-box" value={Board[2][2]}>{Board[2][2]}</button>
+                <button onClick={playTurn} i={0} j={0} disabled={isDisabled(0,0)} className="board-box" value={Board[0][0]}>{Board[0][0]}</button>
+                <button onClick={playTurn} i={0} j={1} disabled={isDisabled(0,1)} className="board-box" value={Board[0][1]}>{Board[0][1]}</button>
+                <button onClick={playTurn} i={0} j={2} disabled={isDisabled(0,2)} className="board-box" value={Board[0][2]}>{Board[0][2]}</button>
+                <button onClick={playTurn} i={1} j={0} disabled={isDisabled(1,0)} className="board-box" value={Board[1][0]}>{Board[1][0]}</button>
+                <button onClick={playTurn} i={1} j={1} disabled={isDisabled(1,1)} className="board-box" value={Board[1][1]}>{Board[1][1]}</button>
+                <button onClick={playTurn} i={1} j={2} disabled={isDisabled(1,2)} className="board-box" value={Board[1][2]}>{Board[1][2]}</button>
+                <button onClick={playTurn} i={2} j={0} disabled={isDisabled(2,0)} className="board-box" value={Board[2][0]}>{Board[2][0]}</button>
+                <button onClick={playTurn} i={2} j={1} disabled={isDisabled(2,1)} className="board-box" value={Board[2][1]}>{Board[2][1]}</button>
+                <button onClick={playTurn} i={2} j={2} disabled={isDisabled(2,2)} className="board-box" value={Board[2][2]}>{Board[2][2]}</button>
             </div>
 
             <div>
+                <h2>{IsTurn ? 'Your turn' : 'Opponents turn'}</h2>
                 <h2 id="user-won-message">{UserWon && `${UserWon} has won the game`}</h2>
             </div>
         </div>

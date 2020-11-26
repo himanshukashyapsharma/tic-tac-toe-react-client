@@ -10,7 +10,7 @@ function App() {
     <div className="App">
         <Router>
             <Route path="/" exact component={Join} />
-            <Route path="/chat" exact component={Game} />
+            <Route path="/game" exact component={Game} />
         </Router>
     </div>
   );

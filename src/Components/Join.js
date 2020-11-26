@@ -25,7 +25,7 @@ const Join = ()=> {
                     <div className="button-wrapper">
                         <Link 
                         onClick={event=> (!Name || !Room)?event.preventDefault():null}
-                        to={`/chat?name=${Name}&room=${Room}`}>
+                        to={`/game?name=${Name}&room=${Room}`}>
                             <button className="button">Sign In</button>
                         </Link>
                     </div>
