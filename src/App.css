@@ -30,32 +30,6 @@
 
 /* My code */
 
-.board{
-  /* background-color: aqua; */
-  margin: 0 auto;
-  border: 1px solid black;
-  width: 40vmin;
-  height: 40vmin;
-  display: grid;
-  justify-content: center;
-  align-items: center;
-  gap: 2px;
-  grid-template-rows:  repeat(3, 1fr);
-  grid-template-columns:  repeat(3, 1fr)
-}
-
-.board-box{
-  width: 80px;
-  height: 80px;
-  font-size: 32px;
-  background-color: chocolate;
-  z-index: 100;
-}
-
-.board-box:focus{
-  background-color: red;
-}
-
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

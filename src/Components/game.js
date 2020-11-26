@@ -1,7 +1,7 @@
 import React,{useState, useEffect} from 'react'
 import io from "socket.io-client";
 import queryString from "query-string";
-import "../App.css"
+import "./game.css"
 
 let socket
 
@@ -13,9 +13,10 @@ function game({location,history}) {
 
     const [Board,setBoard] = new useState([[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']])
     const [IsPlayed,setIsPlayed] = new useState([[false,false,false],[false,false,false],[false,false,false]])
-    // const [RoomData,setRoomData] = new useState() // use this to implement user names
+    const [RoomData,setRoomData] = new useState() // use this to implement user names
     const [UserWon, setUserWon] = new useState()
     const [IsTurn,setIsTurn] = new useState(true)
+    const [ErrorMessage,setErrorMessage] = new useState(' ')
     const ENDPOINT = "http://localhost:5000/"
 
     new useEffect(()=>{
@@ -26,6 +27,15 @@ function game({location,history}) {
         //send join message to server side while comonent loads
         socket.emit("join",{name,room})
         //sends disconnect message to server when component reloads or unloads
+        
+        socket.once('userData',({users}) => {
+            setRoomData(users)
+        })
+
+        socket.once('no-second-user',(errorMessage) => {
+            setErrorMessage(errorMessage)
+        })
+
         return ()=>{
             socket.emit("disconnect user")
         }
@@ -46,8 +56,12 @@ function game({location,history}) {
         })
 
         socket.once("message",({errorMessage}) => {
-            alert(`${errorMessage}`)
             history.push('/') 
+            alert(`${errorMessage}`)
+        })
+
+        socket.once('userData',({users}) => {
+            setRoomData(users)
         })
 
         // reloads whenever messages array is updated
@@ -88,6 +102,7 @@ function game({location,history}) {
             setIsPlayed([[false,false,false],[false,false,false],[false,false,false]])
             setUserWon(null)
             setIsTurn(true)
+            setRoomData(null)
             alert(`${winnerName} has won the game.`)
             history.push('/')
         }
@@ -153,22 +168,33 @@ function game({location,history}) {
 
 
     return (
-        <div>
-            <div className="board">
-                <button onClick={playTurn} i={0} j={0} disabled={isDisabled(0,0)} className="board-box" value={Board[0][0]}>{Board[0][0]}</button>
-                <button onClick={playTurn} i={0} j={1} disabled={isDisabled(0,1)} className="board-box" value={Board[0][1]}>{Board[0][1]}</button>
-                <button onClick={playTurn} i={0} j={2} disabled={isDisabled(0,2)} className="board-box" value={Board[0][2]}>{Board[0][2]}</button>
-                <button onClick={playTurn} i={1} j={0} disabled={isDisabled(1,0)} className="board-box" value={Board[1][0]}>{Board[1][0]}</button>
-                <button onClick={playTurn} i={1} j={1} disabled={isDisabled(1,1)} className="board-box" value={Board[1][1]}>{Board[1][1]}</button>
-                <button onClick={playTurn} i={1} j={2} disabled={isDisabled(1,2)} className="board-box" value={Board[1][2]}>{Board[1][2]}</button>
-                <button onClick={playTurn} i={2} j={0} disabled={isDisabled(2,0)} className="board-box" value={Board[2][0]}>{Board[2][0]}</button>
-                <button onClick={playTurn} i={2} j={1} disabled={isDisabled(2,1)} className="board-box" value={Board[2][1]}>{Board[2][1]}</button>
-                <button onClick={playTurn} i={2} j={2} disabled={isDisabled(2,2)} className="board-box" value={Board[2][2]}>{Board[2][2]}</button>
+        <div className="game-outer-container">
+            <div className="side-nav">
+                    <h1 id="players-heading">Players</h1>
+                    {RoomData && RoomData.map(user => 
+                            <h3>{user.name}</h3>
+                        )
+                    }
             </div>
+            
+            <div className="game-container">
+                <div className="board">
+                    <button onClick={playTurn} i={0} j={0} disabled={isDisabled(0,0)} className="board-box" value={Board[0][0]}>{Board[0][0]}</button>
+                    <button onClick={playTurn} i={0} j={1} disabled={isDisabled(0,1)} className="board-box" value={Board[0][1]}>{Board[0][1]}</button>
+                    <button onClick={playTurn} i={0} j={2} disabled={isDisabled(0,2)} className="board-box" value={Board[0][2]}>{Board[0][2]}</button>
+                    <button onClick={playTurn} i={1} j={0} disabled={isDisabled(1,0)} className="board-box" value={Board[1][0]}>{Board[1][0]}</button>
+                    <button onClick={playTurn} i={1} j={1} disabled={isDisabled(1,1)} className="board-box" value={Board[1][1]}>{Board[1][1]}</button>
+                    <button onClick={playTurn} i={1} j={2} disabled={isDisabled(1,2)} className="board-box" value={Board[1][2]}>{Board[1][2]}</button>
+                    <button onClick={playTurn} i={2} j={0} disabled={isDisabled(2,0)} className="board-box" value={Board[2][0]}>{Board[2][0]}</button>
+                    <button onClick={playTurn} i={2} j={1} disabled={isDisabled(2,1)} className="board-box" value={Board[2][1]}>{Board[2][1]}</button>
+                    <button onClick={playTurn} i={2} j={2} disabled={isDisabled(2,2)} className="board-box" value={Board[2][2]}>{Board[2][2]}</button>
+                </div>
 
-            <div>
-                <h2>{IsTurn ? 'Your turn' : 'Opponents turn'}</h2>
-                <h2 id="user-won-message">{UserWon && `${UserWon} has won the game`}</h2>
+                <div>
+                    <h2 id="turn">{IsTurn ? 'Your turn' : 'Opponents turn'}</h2>
+                    <h2 id="user-won-message">{UserWon && `${UserWon} has won the game`}</h2>
+                    <h2 id="error-message">{ErrorMessage && `${ErrorMessage}`}</h2>
+                </div>
             </div>
         </div>
     )

@@ -1,0 +1,96 @@
+
+.game-outer-container{
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    background-color: #F3EED9;
+    justify-content: space-evenly;
+}
+
+.game-container{
+    background-color: #F3EED9;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.side-nav{
+    border-right: 1px solid #FF4D4F;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.players-heading{
+    display: block;
+    margin: 0 auto;
+}
+
+.board{
+    /* background-color: aqua; */
+    margin: 0 auto;
+    border: 1px solid black;
+    width: 50vmin;
+    height: 50vmin;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+    grid-template-rows:  repeat(3, 1fr);
+    grid-template-columns:  repeat(3, 1fr)
+  }
+  
+  .board-box{
+    width: 100px;
+    height: 100px;
+    color: white;
+    margin: 0 auto;
+    font-size: 32px;
+    background-color: #FF4D4F;
+    z-index: 100;
+  }
+
+  #turn{
+      color: #B26E77
+  }
+
+  #error-message{
+      color: red;
+  }
+
+  #user-won-message{
+      color: #00AD6A;
+  }
+
+  .board-box:hover {
+      cursor: pointer;
+  }
+  
+  .board-box:focus{
+    background-color: red;
+    color: white;
+  }
+  
+@media screen and (max-width: 800px){
+    .game-outer-container{
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        flex-direction: column;
+        background-color: #F3EED9;
+        justify-content: space-evenly;
+    }
+
+    .board{
+        height: 80vw;
+        width: 80vw;
+    }
+
+    #turn, #error-message, #user-won-message{
+        margin-top: 30px;
+    }
+}
